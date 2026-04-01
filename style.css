@@ -1,0 +1,40 @@
+body {
+  font-family: 'Playfair Display', Broadway, Footlight MT Light, sans-serif;
+  margin: 20px;
+  background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+              url('restaurantbg.jpg'); /* file must be in same folder */
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: white;
+}
+
+h1 {
+  color: #0b1a57; /* dark blue */
+  background-color: rgba(0,0,0,0.6);
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 2.5em;
+  text-shadow: 2px 2px 5px #000; /* makes text more visible */
+}
+
+form input, form button {
+  margin: 5px;
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Poppins', sans-serif; /* stylish modern font for inputs */
+}
+
+form button {
+  background-color: darkred;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+form button:hover {
+  background-color: crimson; /* lighter red on hover */
+}

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Restaurant Database</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: url('restaurantbg.jpg') no-repeat center center fixed; /* restaurant background */
+      background-size: cover;
+      color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #00b3ff; /* golden yellow for headings */
+      text-shadow: 2px 2px 5px black;
+    }
+
+    form {
+      background: rgba(0, 0, 0, 0.7); /* semi-transparent dark box */
+      padding: 15px;
+      margin: 20px auto;
+      width: 300px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #000;
+    }
+
+    input, button {
+      display: block;
+      width: 90%;
+      margin: 10px auto;
+      padding: 8px;
+      border-radius: 5px;
+      border: none;
+    }
+
+    input {
+      background: #333;
+      color: #fff;
+    }
+
+    button {
+      background: #ff6600; /* orange buttons */
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #ff3300; /* darker orange on hover */
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      width: 80%;
+      margin: 10px auto;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 10px;
+    }
+
+    li {
+      padding: 10px;
+      border-bottom: 1px solid #444;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #f0f0f0;
+    }
+
+    li button {
+      width: auto;
+      padding: 5px 10px;
+      background: #cc0000; /* red delete buttons */
+    }
+
+    li button:hover {
+      background: #990000;
+    }
+  </style>
+</head>
+<body>
+  <h1>Restaurant Management</h1>
+
+  <!-- Menu Section -->
+  <h2>Menu</h2>
+  <ul id="menu-list"></ul>
+  <form id="menu-form">
+    <input type="text" id="itemName" placeholder="Item Name" required>
+    <input type="number" id="itemPrice" placeholder="Price" required>
+    <button type="submit">Add Item</button>
+  </form>
+
+  <!-- Customers Section -->
+  <h2>Customers</h2>
+  <ul id="customer-list"></ul>
+  <form id="customer-form">
+    <input type="text" id="customerName" placeholder="Name" required>
+    <input type="text" id="customerPhone" placeholder="Phone" required>
+    <input type="email" id="customerEmail" placeholder="Email" required>
+    <button type="submit">Add Customer</button>
+  </form>
+
+  <!-- Orders Section -->
+  <h2>Orders</h2>
+  <ul id="order-list"></ul>
+  <form id="order-form">
+    <input type="number" id="orderCustomerID" placeholder="Customer ID" required>
+    <input type="number" id="orderItemID" placeholder="Item ID" required>
+    <input type="number" id="orderQuantity" placeholder="Quantity" required>
+    <button type="submit">Place Order</button>
+  </form>
+
+  <!-- Order Details Section -->
+  <h2>Order Details</h2>
+  <ul id="order-details-list"></ul>
+
+  <script>
+    // ----------- LOAD FUNCTIONS -----------
+    async function loadMenu() {
+      const res = await fetch('/menu');
+      const data = await res.json();
+      const list = document.getElementById('menu-list');
+      list.innerHTML = "";
+      data.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.ItemID}: ${item.ItemName} - ₹${item.Price}`;
+        const btn = document.createElement('button');
+        btn.textContent = "Delete";
+        btn.onclick = async () => {
+          await fetch(`/delete-menu/${item.ItemID}`, { method: 'DELETE' });
+          loadMenu();
+        };
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+    }
+
+    async function loadCustomers() {
+      const res = await fetch('/customers');
+      const data = await res.json();
+      const list = document.getElementById('customer-list');
+      list.innerHTML = "";
+      data.forEach(customer => {
+        const li = document.createElement('li');
+        li.textContent = `${customer.CustomerID}: ${customer.Name} (Phone: ${customer.Phone}, Email: ${customer.Email})`;
+        const btn = document.createElement('button');
+        btn.textContent = "Delete";
+        btn.onclick = async () => {
+          await fetch(`/delete-customer/${customer.CustomerID}`, { method: 'DELETE' });
+          loadCustomers();
+        };
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+    }
+
+    async function loadOrders() {
+      const res = await fetch('/orders');
+      const data = await res.json();
+      const list = document.getElementById('order-list');
+      list.innerHTML = "";
+      data.forEach(order => {
+        const li = document.createElement('li');
+        li.textContent = `Order #${order.OrderID} by CustomerID ${order.CustomerID} on ${order.OrderDate}`;
+        const btn = document.createElement('button');
+        btn.textContent = "Delete";
+        btn.onclick = async () => {
+          await fetch(`/delete-order/${order.OrderID}`, { method: 'DELETE' });
+          loadOrders();
+          loadOrderDetails();
+        };
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+    }
+
+    async function loadOrderDetails() {
+      const res = await fetch('/order-details');
+      const data = await res.json();
+      const list = document.getElementById('order-details-list');
+      list.innerHTML = "";
+      data.forEach(order => {
+        const li = document.createElement('li');
+        li.textContent = `${order.CustomerName} ordered ${order.Quantity} x ${order.ItemName} on ${order.OrderDate}`;
+        list.appendChild(li);
+      });
+    }
+
+    // ----------- INITIAL LOAD -----------
+    loadMenu();
+    loadCustomers();
+    loadOrders();
+    loadOrderDetails();
+
+    // ----------- FORM HANDLERS -----------
+    document.getElementById('menu-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const itemName = document.getElementById('itemName').value;
+      const itemPrice = document.getElementById('itemPrice').value;
+      await fetch('/add-menu', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ItemName: itemName, Price: itemPrice })
+      });
+      loadMenu();
+    });
+
+    document.getElementById('customer-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('customerName').value;
+      const phone = document.getElementById('customerPhone').value;
+      const email = document.getElementById('customerEmail').value;
+      await fetch('/add-customer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ Name: name, Phone: phone, Email: email })
+      });
+      loadCustomers();
+    });
+
+    document.getElementById('order-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const customerID = document.getElementById('orderCustomerID').value;
+      const itemID = document.getElementById('orderItemID').value;
+      const quantity = document.getElementById('orderQuantity').value;
+      await fetch('/place-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ CustomerID: customerID, ItemID: itemID, Quantity: quantity })
+      });
+      loadOrders();
+      loadOrderDetails();
+    });
+  </script>
+</body>
+</html>
