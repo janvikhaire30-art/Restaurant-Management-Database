@@ -2,8 +2,8 @@ const mysql = require('mysql2');
 
 const pool = mysql.createPool({
   host: 'localhost',
-  user: 'janvi',          // your MySQL username
-  password: 'Janvi@0204', // your MySQL password
+  user: 'janvi',         
+  password: 'Janvi@0204', 
   database: 'restaurantdb'
 });
 
